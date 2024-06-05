@@ -1,5 +1,10 @@
 package com.example.citybusfinder
 
+import android.content.Context
+import android.Manifest
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,23 +24,52 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
 
 
 @Composable
-fun PermissionScreen(navController: NavController) {
+fun PermissionScreen(navController: NavController,locationUtils: LocationUtils,context: Context) {
+
+//    Step1: for granting the permission->Register ActivityResult to request Location permissions
+val requestLocationPermissions = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions())
+{ permissions ->
+    if(permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true &&
+     permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+    ){
+//permission granted, need to update the location
+    }
+
+
+    else{
+//   step2: Add explanation dialog for Location permissions
+
+        val rationalRequired = ActivityCompat.shouldShowRequestPermissionRationale(
+
+          context as MainActivity,
+            Manifest.permission.ACCESS_COARSE_LOCATION)
+                || ActivityCompat.shouldShowRequestPermissionRationale(
+            context as MainActivity,
+            Manifest.permission.ACCESS_COARSE_LOCATION)
+
+
+         if(rationalRequired){
+             Toast.makeText(context, "Permission is required for this feature", Toast.LENGTH_SHORT).show()
+         }else{
+             Toast.makeText(context, "Permission is required,Go to settings", Toast.LENGTH_SHORT).show()
+         }
+    }
+}
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Top, // Align content vertically at the top
-        horizontalAlignment = Alignment.Start // Align content horizontally at the start
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start
     ) {
 
-//        Spacer(modifier = Modifier.height(20.dp))
-//        Button(onClick = { navController.popBackStack() }) {
-//            Text(text = "Go Back")
-//        }
         Text(
             text = stringResource(R.string.Content_permission),
             modifier = Modifier.padding(top = 30.dp),
@@ -45,10 +79,12 @@ fun PermissionScreen(navController: NavController) {
         Image(
             painter = image,
             contentDescription = null,
-//            contentScale = ContentScale.Crop,
-            modifier = Modifier.padding(top = 100.dp, start = 15.dp).size(300.dp) .clip(
-                RoundedCornerShape(16.dp)
-            )
+            modifier = Modifier
+                .padding(top = 100.dp, start = 15.dp)
+                .size(300.dp)
+                .clip(
+                    RoundedCornerShape(16.dp)
+                )
         )
     }
 
@@ -57,14 +93,28 @@ fun PermissionScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .padding(56.dp),
-        verticalArrangement = Arrangement.Bottom, // Align content vertically at the top
+        verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(onClick = { /*TODO*/ },  modifier = Modifier
+        Button(onClick = {
+         if(locationUtils.hasPermissionGranted(context)){
+             // Permission already granted, update the location
+         }
+            else{
+             // if not granted,-> Request for the permission
+                requestLocationPermissions.launch(
+                    arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION,
+                         Manifest.permission.ACCESS_FINE_LOCATION
+                )
+                )
+         }
+        },  modifier = Modifier
             .fillMaxWidth(0.8f)
         ) {
             Text(text = "Allow")
         }
+
+//        TODO : Implement denied button , make navigation to next screen
         Button(onClick = { },
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
