@@ -97,6 +97,7 @@ val requestLocationPermissions = rememberLauncherForActivityResult(contract = Ac
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(onClick = {
+
          if(locationUtils.hasPermissionGranted(context)){
              // Permission already granted, update the location
          }
@@ -108,6 +109,11 @@ val requestLocationPermissions = rememberLauncherForActivityResult(contract = Ac
                 )
                 )
          }
+            navController.navigate(Screen.Finder.route) {
+                popUpTo(Screen.PermissionScreen.route) { inclusive = true }
+            } // after updating location in map got to next screen
+//            after allow to finder screen , here user should not return back to again permission screen
+
         },  modifier = Modifier
             .fillMaxWidth(0.8f)
         ) {
@@ -115,7 +121,8 @@ val requestLocationPermissions = rememberLauncherForActivityResult(contract = Ac
         }
 
 //        TODO : Implement denied button , make navigation to next screen
-        Button(onClick = { },
+        Button(onClick = { navController.navigate(Screen.Finder.route)
+        },
             modifier = Modifier.fillMaxWidth(0.8f)
         ) {
             Text(text = "Denied")

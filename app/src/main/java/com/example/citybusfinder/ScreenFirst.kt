@@ -1,5 +1,6 @@
 package com.example.citybusfinder
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,9 +14,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+//import kotlinx.coroutines.flow.internal.NoOpContinuation.context
+//import kotlin.coroutines.jvm.internal.CompletedContinuation.context
 
 @Composable
-fun WelcomeScreen(navController: NavController) {
+fun WelcomeScreen(navController: NavController,locationUtils: LocationUtils,context: Context) {
     Column(
         modifier = Modifier.padding(20.dp)
     ) {
@@ -32,7 +35,15 @@ fun WelcomeScreen(navController: NavController) {
 
             )
         Spacer(modifier = Modifier.padding(top = 10.dp))
-        Button(onClick = { navController.navigate(Screen.PermissionScreen.route) }) {
+        Button(onClick = {
+            // agar user ne phele se hi permission de rhki h to direct third screen pe jaap
+            if(locationUtils.hasPermissionGranted(context)){
+            navController.navigate(Screen.Finder.route)}
+            else{
+                // nhi to permission do phele
+                navController.navigate(Screen.PermissionScreen.route)
+            }
+        }) {
             Text(text = "GetStarted...")
         }
     }
