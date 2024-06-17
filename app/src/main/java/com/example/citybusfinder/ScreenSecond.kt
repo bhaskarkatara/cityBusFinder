@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,40 +29,35 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
 
-
 @Composable
-fun PermissionScreen(navController: NavController,locationUtils: LocationUtils,context: Context) {
+fun PermissionScreen(navController: NavController, locationUtils: LocationUtils, context: Context) {
+    val (hasPermissions, setHasPermissions) = remember { mutableStateOf(false) }
 
-//    Step1: for granting the permission->Register ActivityResult to request Location permissions
-val requestLocationPermissions = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions())
-{ permissions ->
-    if(permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true &&
-     permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-    ){
-//permission granted, need to update the location
+    // Register ActivityResult to request Location permissions
+    val requestLocationPermissions = rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true &&
+            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        ) {
+            // Permission granted, update the location and navigate to Finder screen
+            setHasPermissions(true)
+            navController.navigate(Screen.Finder.route) {
+                popUpTo(Screen.PermissionScreen.route) { inclusive = true }
+            }
+        } else {
+            // Add explanation dialog for Location permissions
+            val rationalRequired = ActivityCompat.shouldShowRequestPermissionRationale(
+                context as MainActivity, Manifest.permission.ACCESS_FINE_LOCATION
+            ) || ActivityCompat.shouldShowRequestPermissionRationale(
+                context as MainActivity, Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+
+            if (rationalRequired) {
+                Toast.makeText(context, "Permission is required for this feature", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Permission is required, Go to settings", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
-
-
-    else{
-//   step2: Add explanation dialog for Location permissions
-
-        val rationalRequired = ActivityCompat.shouldShowRequestPermissionRationale(
-
-          context as MainActivity,
-            Manifest.permission.ACCESS_COARSE_LOCATION)
-                || ActivityCompat.shouldShowRequestPermissionRationale(
-            context as MainActivity,
-            Manifest.permission.ACCESS_COARSE_LOCATION)
-
-
-         if(rationalRequired){
-             Toast.makeText(context, "Permission is required for this feature", Toast.LENGTH_SHORT).show()
-         }else{
-             Toast.makeText(context, "Permission is required,Go to settings", Toast.LENGTH_SHORT).show()
-         }
-    }
-}
-
 
     Column(
         modifier = Modifier
@@ -69,7 +66,6 @@ val requestLocationPermissions = rememberLauncherForActivityResult(contract = Ac
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
-
         Text(
             text = stringResource(R.string.Content_permission),
             modifier = Modifier.padding(top = 30.dp),
@@ -82,12 +78,9 @@ val requestLocationPermissions = rememberLauncherForActivityResult(contract = Ac
             modifier = Modifier
                 .padding(top = 100.dp, start = 15.dp)
                 .size(300.dp)
-                .clip(
-                    RoundedCornerShape(16.dp)
-                )
+                .clip(RoundedCornerShape(16.dp))
         )
     }
-
 
     Column(
         modifier = Modifier
@@ -97,38 +90,31 @@ val requestLocationPermissions = rememberLauncherForActivityResult(contract = Ac
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(onClick = {
-
-         if(locationUtils.hasPermissionGranted(context)){
-             // Permission already granted, update the location
-         }
-            else{
-             // if not granted,-> Request for the permission
+            if (locationUtils.hasPermissionGranted(context)) {
+                // Permission already granted, navigate to Finder screen and update the user location in mao todo
+                navController.navigate(Screen.Finder.route) {
+                    popUpTo(Screen.PermissionScreen.route) { inclusive = true }
+                }
+            } else {
+                // Request for the permission
                 requestLocationPermissions.launch(
-                    arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION,
-                         Manifest.permission.ACCESS_FINE_LOCATION
+                    arrayOf(
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    )
                 )
-                )
-         }
-            navController.navigate(Screen.Finder.route) {
-                popUpTo(Screen.PermissionScreen.route) { inclusive = true }
-            } // after updating location in map got to next screen
-//            after allow to finder screen , here user should not return back to again permission screen
-
-        },  modifier = Modifier
-            .fillMaxWidth(0.8f)
-        ) {
+            }
+        }, modifier = Modifier.fillMaxWidth(0.8f)) {
             Text(text = "Allow")
         }
 
-//        TODO : Implement denied button , make navigation to next screen
-        Button(onClick = { navController.navigate(Screen.Finder.route)
-        },
-            modifier = Modifier.fillMaxWidth(0.8f)
-        ) {
+        Button(onClick = {
+            // Navigate to Finder screen even if permission is denied
+            navController.navigate(Screen.Finder.route) {
+                popUpTo(Screen.PermissionScreen.route) { inclusive = true }
+            }
+        }, modifier = Modifier.fillMaxWidth(0.8f)) {
             Text(text = "Denied")
         }
-
     }
-
 }
-
