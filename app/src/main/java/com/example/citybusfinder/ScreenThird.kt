@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,5 +52,14 @@ fun FinderScreen(navController: NavController, viewModel: InputsViewModel = view
             maxLines = 1,
             label = { Text(text = "Enter your destination", color = Color.Black) }
         )
+        
+        Spacer(modifier = Modifier.height(10.dp))
+        
+        Button(onClick = { /*TODO*/ }) {
+            Text(text = "Find Bus")
+        }
+        Spacer(modifier = Modifier.height(50.dp))
+        
+        Text(text = "your bus is : ")
     }
 }
