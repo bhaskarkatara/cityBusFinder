@@ -1,0 +1,23 @@
+PROBLEM STATEMENT :
+
+Navigating local city transportation can be a challenging task for residents and visitors alike, especially in bustling urban areas.
+Often, individuals are unsure which city bus to take to reach their destination, leading to confusion and the potential to choose more expensive alternatives such as auto-rickshaws. 
+This situation results in increased transportation costs and unnecessary stress for commuters.
+
+To address this issue, our project aims to simplify city bus transportation by providing an easy-to-use mobile application that leverages real-time user location data.
+By taking user location permission and allowing users to input their source and destination points, the app can display the most suitable city bus routes available.
+This ensures that users are informed about the best possible bus options, reducing the likelihood of overpaying for other modes of transport.
+
+Additionally, the application incorporates a Room database to store the history of searched bus routes, enabling users to quickly access their previous searches.
+This feature enhances the user experience by providing a personalized and efficient way to navigate city transportation.
+
+TECH STACK:
+Android studio, jetpack ,MVVM, RoomDatabase ,json,kotlin
+
+
+
+
+
+
+
+
