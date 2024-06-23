@@ -1,6 +1,5 @@
 package com.example.citybusfinder
 
-import InputsViewModel
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -147,8 +146,10 @@ fun searchBuses(buses: List<BusInformation>, source: String, destination: String
     return buses.filter { bus ->
         val sourceIndex = bus.via.indexOf(source)
         val destinationIndex = bus.via.indexOf(destination)
+
         // todo this is not the final logic to find the appropriate bus
+
        ( sourceIndex != -1 && destinationIndex != -1 && sourceIndex < destinationIndex)
-               || (sourceIndex > destinationIndex)
+
     }
 }
