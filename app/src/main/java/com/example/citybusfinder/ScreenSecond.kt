@@ -125,9 +125,6 @@ fun PermissionScreen(navController: NavController, locationUtils: LocationUtils,
         }, modifier = Modifier.fillMaxWidth(0.8f)) {
             Text(text = "Allow")
         }
-
-
-
         Button(
             onClick = {
                 scope.launch {
