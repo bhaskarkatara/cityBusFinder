@@ -1,6 +1,8 @@
 package com.example.citybusfinder
 
+import android.content.ContentValues.TAG
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,19 +15,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-
 @Composable
 fun FinderScreen(
     navController: NavController,
@@ -69,11 +75,18 @@ fun FinderScreen(
             ) {
                 items(viewModel.sourceSuggestions) { suggestion ->
                     Text(
-                        text = suggestion,
+                        text = if (suggestion != viewModel.destination) {
+                            suggestion
+                        } else {
+                            "*Source and destination cannot be same*"
+                        },
+                        color = if (suggestion != viewModel.destination) Color.Black else Color.Red,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                viewModel.updateSource(suggestion, allLocations)
+                                if (suggestion != viewModel.destination) {
+                                    viewModel.updateSource(suggestion, allLocations)
+                                }
                             }
                             .padding(8.dp)
                     )
@@ -98,11 +111,18 @@ fun FinderScreen(
             ) {
                 items(viewModel.destinationSuggestions) { suggestion ->
                     Text(
-                        text = suggestion,
+                        text = if (suggestion != viewModel.source) {
+                            suggestion
+                        } else {
+                            "*Source and destination cannot be same*"
+                        },
+                        color = if (suggestion != viewModel.source) Color.Black else Color.Red,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                viewModel.updateDestination(suggestion, allLocations)
+                                if (suggestion != viewModel.source) {
+                                    viewModel.updateDestination(suggestion, allLocations)
+                                }
                             }
                             .padding(8.dp)
                     )
@@ -127,6 +147,16 @@ fun FinderScreen(
             }) {
                 Text(text = "Reset")
             }
+            Spacer(modifier = Modifier.width(16.dp))
+            Button(onClick = {
+                if (viewModel.source.isNotEmpty() && viewModel.destination.isNotEmpty()) {
+                    val tempSource = viewModel.source
+                    viewModel.updateSource(viewModel.destination, allLocations)
+                    viewModel.updateDestination(tempSource, allLocations)
+                }
+            }) {
+                Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
+            }
         }
 
         Spacer(modifier = Modifier.height(50.dp))
@@ -146,10 +176,6 @@ fun searchBuses(buses: List<BusInformation>, source: String, destination: String
     return buses.filter { bus ->
         val sourceIndex = bus.via.indexOf(source)
         val destinationIndex = bus.via.indexOf(destination)
-
-        // todo this is not the final logic to find the appropriate bus
-
-       ( sourceIndex != -1 && destinationIndex != -1 && sourceIndex < destinationIndex)
-
+        sourceIndex != -1 && destinationIndex != -1
     }
 }
