@@ -1,8 +1,6 @@
 package com.example.citybusfinder
 
-import android.content.ContentValues.TAG
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,16 +20,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.citybusfinder.sampledata.BusInformation
+
 @Composable
 fun FinderScreen(
     navController: NavController,
@@ -161,14 +160,29 @@ fun FinderScreen(
 
         Spacer(modifier = Modifier.height(50.dp))
 
-        Text(text = "Your bus is: ")
+        Text(text = "Bus Number is : ")
 
         // Display the search results
-        result.value?.forEach { bus ->
-            Text(text = "${bus.busNumber} - ${bus.busId}")
+        if(result.value?.isNotEmpty() == true) {
+            result.value?.forEach { bus ->
+                Text(text = "${bus.busNumber}",
+                color = Color.Black,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
+        else if(result.value?.isNotEmpty() == false){
+            Text(text = "No bus found",
+                color = Color.Red,
+                fontWeight = FontWeight.Bold
+                )
+        }
+
         Spacer(modifier = Modifier.height(50.dp))
-        Text(text = "todo: implement room database to save history ")
+//        Text(text = "todo: implement room database to save history ")
+        Text(text ="Search History..." ,
+           modifier = Modifier.padding(top = 50.dp, end = 170.dp)
+            )
     }
 }
 

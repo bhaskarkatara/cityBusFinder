@@ -1,6 +1,7 @@
 package com.example.citybusfinder
 
 import android.content.Context
+import com.example.citybusfinder.sampledata.BusInformation
 import com.google.firebase.crashlytics.buildtools.reloc.com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import java.io.InputStreamReader
