@@ -51,6 +51,12 @@ fun FinderScreen(
     ) {
         Spacer(modifier = Modifier.height(100.dp)) // Add spacing at the top
 
+        /**
+         todo: first show curr location of user on Google map
+         todo: then when user fills the source and destination then map should update and show the source to curr location destination path(shortest path)
+          this will use graphs for shortest distance
+         */
+
         if (locationUtils.hasPermissionGranted(context)) {
             Text(text = "Permission granted, map will be shown")
         } else {
@@ -179,10 +185,7 @@ fun FinderScreen(
         }
 
         Spacer(modifier = Modifier.height(50.dp))
-//        Text(text = "todo: implement room database to save history ")
-        Text(text ="Search History..." ,
-           modifier = Modifier.padding(top = 50.dp, end = 170.dp)
-            )
+
     }
 }
 
