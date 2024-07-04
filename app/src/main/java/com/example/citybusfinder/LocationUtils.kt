@@ -1,21 +1,37 @@
 package com.example.citybusfinder
 
-import  android.Manifest
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
 import androidx.core.content.ContextCompat
-import androidx.core.content.PackageManagerCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
-// this class is responsible for checking whether user has granted permission or not
-class LocationUtils(val context : Context) {
+class LocationUtils(private val context: Context) {
 
-    fun hasPermissionGranted(context: Context) : Boolean {
+    private var fusedLocationClient: FusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(context)
 
-        return ContextCompat.checkSelfPermission(context,Manifest.permission.ACCESS_FINE_LOCATION) ==
+    fun hasPermissionGranted(context: Context): Boolean {
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED &&
-
-                ContextCompat.checkSelfPermission(context,Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED
+    }
 
+    @SuppressLint("MissingPermission")
+    fun getCurrentLocation(onLocationReceived: (Location) -> Unit) {
+        if (hasPermissionGranted(context)) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                location?.let {
+                    onLocationReceived(it)
+                } ?: run {
+                    // Handle the case where location is null
+                    // For example, request a location update
+                }
+            }
+        }
     }
 }

@@ -1,16 +1,18 @@
 package com.example.citybusfinder
+//package com.example.citybusfinder
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Geocoder
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -19,18 +21,41 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.citybusfinder.sampledata.BusInformation
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
+import com.google.gson.Gson
+import com.google.maps.android.PolyUtil
+import kotlinx.coroutines.launch
+import okhttp3.*
+import java.io.IOException
+import java.util.Locale
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun FinderScreen(
     navController: NavController,
@@ -42,28 +67,65 @@ fun FinderScreen(
     val allLocations = buses?.flatMap { it.via }?.distinct() ?: emptyList()
     val result = remember { mutableStateOf<List<BusInformation>?>(null) }
 
+    val locationPermissions = rememberMultiplePermissionsState(
+        permissions = listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+    )
+
+    var googleMap by remember { mutableStateOf<GoogleMap?>(null) }
+    val mapView = rememberMapViewWithLifecycle()
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(20.dp)
     ) {
-        Spacer(modifier = Modifier.height(100.dp)) // Add spacing at the top
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp)
+                .aspectRatio(16f / 9f)
+                .height(500.dp) // Adjust the height as needed to cover half the screen
+        ) {
+            if (locationUtils.hasPermissionGranted(context)) {
+                MapViewContainer(mapView, googleMap) { map ->
+                    googleMap = map
+                    map.uiSettings.isZoomControlsEnabled = true
+                    map.uiSettings.isMyLocationButtonEnabled = true
+                    map.isMyLocationEnabled = true // Enable my location layer
 
-        /**
-         todo: first show curr location of user on Google map
-         todo: then when user fills the source and destination then map should update and show the source to curr location destination path(shortest path)
-          this will use graphs for shortest distance
-         */
-
-        if (locationUtils.hasPermissionGranted(context)) {
-            Text(text = "Permission granted, map will be shown")
-        } else {
-            Text(text = "Permission not granted, map will not be shown")
+                    // Request location updates
+                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                        if (location != null) {
+                            val currentLatLng = LatLng(location.latitude, location.longitude)
+                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
+                            map.addMarker(MarkerOptions().position(currentLatLng).title("You are here"))
+                            Log.d("FinderScreen", "Location updated: $currentLatLng")
+                        } else {
+                            Log.d("FinderScreen", "Last known location is null")
+                        }
+                    }.addOnFailureListener { exception ->
+                        Log.e("FinderScreen", "Failed to get last location", exception)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "Permission not granted, map will not be shown")
+                    Button(onClick = { locationPermissions.launchMultiplePermissionRequest() }) {
+                        Text(text = "Grant Location Permission")
+                    }
+                }
+            }
         }
 
-        Spacer(modifier = Modifier.height(32.dp)) // Add spacing between text and text fields
+        Spacer(modifier = Modifier.height(32.dp)) // Add spacing between map and other UI elements
 
         OutlinedTextField(
             value = viewModel.source,
@@ -139,16 +201,45 @@ fun FinderScreen(
 
         Row {
             Button(onClick = {
-                // Perform the search when the button is clicked
-                result.value = searchBuses(buses ?: emptyList(), viewModel.source, viewModel.destination)
+                try {
+                    result.value = searchBuses(buses ?: emptyList(), viewModel.source, viewModel.destination)
+                    Log.d("FinderScreen", "Buses found: ${result.value}")
+
+                    locationUtils.getCurrentLocation { userLocation ->
+                        val userLatLng = LatLng(userLocation.latitude, userLocation.longitude)
+
+                        getLatLngFromPlaceName(context, viewModel.source) { sourceLatLng ->
+                            if (sourceLatLng != null) {
+                                getLatLngFromPlaceName(context, viewModel.destination) { destinationLatLng ->
+                                    if (destinationLatLng != null) {
+                                        googleMap?.let {
+                                            drawRoute(context, it, sourceLatLng,
+                                                destinationLatLng.toString()
+                                            )
+                                            Log.d("FinderScreen", "Route drawn from $sourceLatLng to $destinationLatLng")
+                                        }
+                                    } else {
+                                        Log.e("FinderScreen", "Destination location is null")
+                                        Toast.makeText(context, "Failed to get destination location", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            } else {
+                                Log.e("FinderScreen", "Source location is null")
+                                Toast.makeText(context, "Failed to get source location", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("FinderScreen", "Error finding buses or drawing route", e)
+                }
             }) {
                 Text(text = "Find Bus")
             }
             Spacer(modifier = Modifier.width(16.dp))
             Button(onClick = {
-                // Reset the input fields when the button is clicked
                 viewModel.reset()
                 result.value = null
+                Log.d("FinderScreen", "Inputs reset")
             }) {
                 Text(text = "Reset")
             }
@@ -158,6 +249,7 @@ fun FinderScreen(
                     val tempSource = viewModel.source
                     viewModel.updateSource(viewModel.destination, allLocations)
                     viewModel.updateDestination(tempSource, allLocations)
+                    Log.d("FinderScreen", "Source and destination swapped")
                 }
             }) {
                 Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
@@ -169,25 +261,177 @@ fun FinderScreen(
         Text(text = "Bus Number is : ")
 
         // Display the search results
-        if(result.value?.isNotEmpty() == true) {
+        if (result.value?.isNotEmpty() == true) {
             result.value?.forEach { bus ->
-                Text(text = "${bus.busNumber}",
-                color = Color.Black,
+                Text(
+                    text = "${bus.busNumber}",
+                    color = Color.Black,
                     fontWeight = FontWeight.Bold
                 )
             }
-        }
-        else if(result.value?.isNotEmpty() == false){
-            Text(text = "No bus found",
+            Log.d("FinderScreen", "Buses displayed")
+        } else if (result.value?.isNotEmpty() == false) {
+            Text(
+                text = "No bus found",
                 color = Color.Red,
                 fontWeight = FontWeight.Bold
-                )
+            )
+            Log.d("FinderScreen", "No buses found")
         }
-
-        Spacer(modifier = Modifier.height(50.dp))
-
     }
 }
+
+@SuppressLint("MissingPermission")
+private fun startLocationUpdates(fusedLocationClient: FusedLocationProviderClient, map: GoogleMap) {
+    val locationRequest = com.google.android.gms.location.LocationRequest.create().apply {
+        interval = 10000
+        fastestInterval = 5000
+        priority = com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
+    }
+
+    fusedLocationClient.requestLocationUpdates(locationRequest, object : com.google.android.gms.location.LocationCallback() {
+        override fun onLocationResult(locationResult: com.google.android.gms.location.LocationResult) {
+            locationResult.lastLocation?.let { location ->
+                val currentLatLng = LatLng(location.latitude, location.longitude)
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+            }
+        }
+    }, Looper.getMainLooper())
+}
+
+
+
+private fun getLatLngFromPlaceName(context: Context, placeName: String, callback: (LatLng?) -> Unit) {
+    val geocoder = Geocoder(context, Locale.getDefault())
+    val addresses = geocoder.getFromLocationName(placeName, 1)
+    if (addresses != null) {
+        if (addresses.isNotEmpty()) {
+            val location = addresses[0]
+            if (location != null) {
+                callback(LatLng(location.latitude, location.longitude))
+            }
+        } else {
+            callback(null)
+        }
+    }
+}
+private fun drawRoute(
+    context: Context,
+    googleMap: GoogleMap,
+    origin: LatLng,
+    destination: String
+) {
+    val apiKey = "YOUR_API_KEY"
+    val url = getDirectionsUrl( origin, destination)
+
+    val client = OkHttpClient()
+    val request = Request.Builder().url(url).build()
+
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            Log.e("FinderScreen", "Failed to get directions", e)
+        }
+        override fun onResponse(call: Call, response: Response) {
+            response.body?.let { responseBody ->
+                val responseString = responseBody.string()
+                val json = Gson().fromJson(responseString, MapDataClass::class.java)
+
+                val points = json.routes
+                    .flatMap { route -> route.legs }
+                    .flatMap { leg -> leg.steps }
+                    .flatMap { step -> PolyUtil.decode(step.polyline.points) }
+
+                Handler(Looper.getMainLooper()).post {
+                    googleMap.addPolyline(
+                        PolylineOptions()
+                            .addAll(points)
+                            .color(ContextCompat.getColor(context, R.color.purple_500))
+                    )
+                }
+            }
+        }
+    })
+}
+
+private fun getDirectionsUrl( origin: LatLng, destination: String): String {
+    val originStr = "origin=${origin.latitude},${origin.longitude}"
+    val destinationStr = "destination=$destination"
+    val mode = "mode=driving"
+    val parameters = "$originStr&$destinationStr&$mode&key=YOUR_API_KEY"
+    return "https://maps.googleapis.com/maps/api/directions/json?$parameters"
+}
+
+data class MapDataClass(
+    val routes: List<Route>
+)
+
+data class Route(
+    val legs: List<Leg>
+)
+
+data class Leg(
+    val steps: List<Step>
+)
+
+data class Step(
+    val polyline: Polyline
+)
+
+data class Polyline(
+    val points: String
+)
+
+
+@Composable
+fun MapViewContainer(
+    mapView: MapView,
+    googleMap: GoogleMap?,
+    onMapReady: (GoogleMap) -> Unit
+) {
+    AndroidView(
+        factory = { mapView },
+        update = { view ->
+            view.getMapAsync { map ->
+                googleMap ?: onMapReady(map)
+            }
+        }
+    )
+}
+@SuppressLint("MissingPermission")
+@Composable
+fun rememberMapViewWithLifecycle(): MapView {
+    val context = LocalContext.current
+    val mapView = remember { MapView(context) }
+
+    val lifecycleObserver = rememberMapLifecycleObserver(mapView)
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle) {
+        lifecycle.addObserver(lifecycleObserver)
+        onDispose {
+            lifecycle.removeObserver(lifecycleObserver)
+        }
+    }
+
+    return mapView
+}
+
+@Composable
+fun rememberMapLifecycleObserver(mapView: MapView): LifecycleEventObserver {
+    return remember {
+        LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_CREATE -> mapView.onCreate(Bundle())
+                Lifecycle.Event.ON_START -> mapView.onStart()
+                Lifecycle.Event.ON_RESUME -> mapView.onResume()
+                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                Lifecycle.Event.ON_STOP -> mapView.onStop()
+                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                else -> {}
+            }
+        }
+    }
+}
+
 
 fun searchBuses(buses: List<BusInformation>, source: String, destination: String): List<BusInformation> {
     return buses.filter { bus ->
