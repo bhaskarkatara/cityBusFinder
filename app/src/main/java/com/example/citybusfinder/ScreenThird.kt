@@ -1,10 +1,8 @@
 package com.example.citybusfinder
-//package com.example.citybusfinder
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.os.Bundle
 import android.os.Handler
@@ -31,8 +29,6 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,11 +41,16 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
+import com.google.gson.annotations.SerializedName
 import com.google.maps.android.PolyUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.*
 import java.io.IOException
@@ -87,9 +88,9 @@ fun FinderScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 20.dp)
-                .aspectRatio(16f / 9f)
-                .height(500.dp) // Adjust the height as needed to cover half the screen
-        ) {
+                .fillMaxHeight(0.4f) // Fill half of the screen height
+        )
+        {
             if (locationUtils.hasPermissionGranted(context)) {
                 MapViewContainer(mapView, googleMap) { map ->
                     googleMap = map
@@ -213,8 +214,8 @@ fun FinderScreen(
                                 getLatLngFromPlaceName(context, viewModel.destination) { destinationLatLng ->
                                     if (destinationLatLng != null) {
                                         googleMap?.let {
-                                            drawRoute(context, it, sourceLatLng,
-                                                destinationLatLng.toString()
+                                            drawRoute(context, it, userLatLng,sourceLatLng
+
                                             )
                                             Log.d("FinderScreen", "Route drawn from $sourceLatLng to $destinationLatLng")
                                         }
@@ -289,40 +290,44 @@ private fun startLocationUpdates(fusedLocationClient: FusedLocationProviderClien
         priority = com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
     }
 
-    fusedLocationClient.requestLocationUpdates(locationRequest, object : com.google.android.gms.location.LocationCallback() {
+    val locationCallback = object : com.google.android.gms.location.LocationCallback() {
         override fun onLocationResult(locationResult: com.google.android.gms.location.LocationResult) {
-            locationResult.lastLocation?.let { location ->
+            for (location in locationResult.locations) {
                 val currentLatLng = LatLng(location.latitude, location.longitude)
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
+                map.addMarker(MarkerOptions().position(currentLatLng).title("You are here"))
             }
         }
-    }, Looper.getMainLooper())
+    }
+
+    fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
 }
 
 
 
 private fun getLatLngFromPlaceName(context: Context, placeName: String, callback: (LatLng?) -> Unit) {
     val geocoder = Geocoder(context, Locale.getDefault())
-    val addresses = geocoder.getFromLocationName(placeName, 1)
-    if (addresses != null) {
-        if (addresses.isNotEmpty()) {
-            val location = addresses[0]
-            if (location != null) {
-                callback(LatLng(location.latitude, location.longitude))
+    try {
+        val addresses = geocoder.getFromLocationName(placeName, 1)
+        if (addresses != null) {
+            if (addresses.isNotEmpty()) {
+                val address = addresses[0]
+                if (address != null) {
+                    callback(LatLng(address.latitude, address.longitude))
+                }
+            } else {
+                callback(null)
             }
-        } else {
-            callback(null)
         }
+    } catch (e: IOException) {
+        Log.e("Geocoder", "Error getting location from place name", e)
+        callback(null)
     }
 }
-private fun drawRoute(
-    context: Context,
-    googleMap: GoogleMap,
-    origin: LatLng,
-    destination: String
-) {
-    val apiKey = "YOUR_API_KEY"
-    val url = getDirectionsUrl( origin, destination)
+
+private fun drawRoute(context: Context, map: GoogleMap, origin: LatLng, destination: LatLng) {
+    val apiKey = "-----------------" // Replace with your actual Google Maps API key
+    val url = getDirectionsUrl(origin, destination)
 
     val client = OkHttpClient()
     val request = Request.Builder().url(url).build()
@@ -330,57 +335,110 @@ private fun drawRoute(
     client.newCall(request).enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
             Log.e("FinderScreen", "Failed to get directions", e)
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(context, "Failed to get directions", Toast.LENGTH_SHORT).show()
+            }
         }
+
         override fun onResponse(call: Call, response: Response) {
             response.body?.let { responseBody ->
                 val responseString = responseBody.string()
-                val json = Gson().fromJson(responseString, MapDataClass::class.java)
+                Log.d("FinderScreen", "Directions API response: $responseString") // Log response for debugging
 
-                val points = json.routes
-                    .flatMap { route -> route.legs }
-                    .flatMap { leg -> leg.steps }
-                    .flatMap { step -> PolyUtil.decode(step.polyline.points) }
-
-                Handler(Looper.getMainLooper()).post {
-                    googleMap.addPolyline(
-                        PolylineOptions()
-                            .addAll(points)
-                            .color(ContextCompat.getColor(context, R.color.purple_500))
-                    )
+                try {
+                    val directionsResponse = Gson().fromJson(responseString, DirectionsResponse::class.java)
+                    val route = directionsResponse.routes.firstOrNull()
+                    if (route != null) {
+                        val points = PolyUtil.decode(route.overviewPolyline.points)
+                        Handler(Looper.getMainLooper()).post {
+                            map.addPolyline(
+                                PolylineOptions()
+                                    .addAll(points)
+                                    .color(Color.Blue.toArgb()) // Draw route in blue color
+                                    .width(10f)
+                            )
+                            map.addMarker(MarkerOptions().position(origin).title("Origin"))
+                            map.addMarker(MarkerOptions().position(destination).title("Destination"))
+                            Toast.makeText(context, "Route drawn successfully", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Log.e("FinderScreen", "No route found")
+                        Handler(Looper.getMainLooper()).post {
+                            Toast.makeText(context, "No route found", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: JsonSyntaxException) {
+                    Log.e("FinderScreen", "Error parsing JSON", e)
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(context, "Error parsing JSON", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
     })
 }
 
-private fun getDirectionsUrl( origin: LatLng, destination: String): String {
+
+
+
+private fun getDirectionsUrl(origin: LatLng, destination: LatLng): String {
     val originStr = "origin=${origin.latitude},${origin.longitude}"
-    val destinationStr = "destination=$destination"
+    val destinationStr = "destination=${destination.latitude},${destination.longitude}"
     val mode = "mode=driving"
-    val parameters = "$originStr&$destinationStr&$mode&key=YOUR_API_KEY"
+    val parameters = "$originStr&$destinationStr&$mode&key=------------------------"
     return "https://maps.googleapis.com/maps/api/directions/json?$parameters"
 }
+private fun decodePolyline(encoded: String): List<LatLng> {
+    val poly = ArrayList<LatLng>()
+    var index = 0
+    val len = encoded.length
+    var lat = 0
+    var lng = 0
 
-data class MapDataClass(
-    val routes: List<Route>
+    while (index < len) {
+        var b: Int
+        var shift = 0
+        var result = 0
+        do {
+            b = encoded[index++].toInt() - 63
+            result = result or (b and 0x1f shl shift)
+            shift += 5
+        } while (b >= 0x20)
+        val dlat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+        lat += dlat
+
+        shift = 0
+        result = 0
+        do {
+            b = encoded[index++].toInt() - 63
+            result = result or (b and 0x1f shl shift)
+            shift += 5
+        } while (b >= 0x20)
+        val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+        lng += dlng
+
+        val p = LatLng((lat / 1E5).toDouble(), (lng / 1E5).toDouble())
+        poly.add(p)
+    }
+
+    return poly
+}
+
+//import com.google.gson.annotations.SerializedName
+
+//import com.google.gson.annotations.SerializedName
+
+data class DirectionsResponse(
+    @SerializedName("routes") val routes: List<Route>
 )
 
 data class Route(
-    val legs: List<Leg>
+    @SerializedName("overview_polyline") val overviewPolyline: OverviewPolyline
 )
 
-data class Leg(
-    val steps: List<Step>
+data class OverviewPolyline(
+    @SerializedName("points") val points: String
 )
-
-data class Step(
-    val polyline: Polyline
-)
-
-data class Polyline(
-    val points: String
-)
-
 
 @Composable
 fun MapViewContainer(
@@ -403,35 +461,30 @@ fun rememberMapViewWithLifecycle(): MapView {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
 
-    val lifecycleObserver = rememberMapLifecycleObserver(mapView)
+    val lifecycleObserver = rememberLifecycleObserver(mapView)
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle) {
         lifecycle.addObserver(lifecycleObserver)
-        onDispose {
-            lifecycle.removeObserver(lifecycleObserver)
-        }
+        onDispose { lifecycle.removeObserver(lifecycleObserver) }
     }
 
     return mapView
 }
 
 @Composable
-fun rememberMapLifecycleObserver(mapView: MapView): LifecycleEventObserver {
-    return remember {
-        LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_CREATE -> mapView.onCreate(Bundle())
-                Lifecycle.Event.ON_START -> mapView.onStart()
-                Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-                Lifecycle.Event.ON_STOP -> mapView.onStop()
-                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
-                else -> {}
-            }
+fun rememberLifecycleObserver(mapView: MapView): LifecycleEventObserver = remember(mapView) {
+    LifecycleEventObserver { _, event ->
+        when (event) {
+            Lifecycle.Event.ON_CREATE -> mapView.onCreate(Bundle())
+            Lifecycle.Event.ON_START -> mapView.onStart()
+            Lifecycle.Event.ON_RESUME -> mapView.onResume()
+            Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+            Lifecycle.Event.ON_STOP -> mapView.onStop()
+            Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+            else -> {}
         }
     }
 }
-
 
 fun searchBuses(buses: List<BusInformation>, source: String, destination: String): List<BusInformation> {
     return buses.filter { bus ->
