@@ -1,4 +1,4 @@
-package com.example.citybusfinder
+    package com.example.citybusfinder
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -44,6 +44,7 @@ import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
@@ -67,6 +68,7 @@ fun FinderScreen(
     val buses: List<BusInformation>? = JsonUtil.loadJsonFromAsset(context)
     val allLocations = buses?.flatMap { it.via }?.distinct() ?: emptyList()
     val result = remember { mutableStateOf<List<BusInformation>?>(null) }
+    var routePolyline by remember { mutableStateOf<Polyline?>(null) }
 
     val locationPermissions = rememberMultiplePermissionsState(
         permissions = listOf(
@@ -135,7 +137,7 @@ fun FinderScreen(
             label = { Text(text = "Enter your source", color = Color.Black) }
         )
 
-        if (viewModel.sourceSuggestions.isNotEmpty()) {
+        if (viewModel.showSourceSuggestions && viewModel.sourceSuggestions.isNotEmpty()) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -153,7 +155,8 @@ fun FinderScreen(
                             .fillMaxWidth()
                             .clickable {
                                 if (suggestion != viewModel.destination) {
-                                    viewModel.updateSource(suggestion, allLocations)
+//                                    viewModel.updateSource(suggestion, allLocations)
+                                    viewModel.selectSource(suggestion)
                                 }
                             }
                             .padding(8.dp)
@@ -171,7 +174,7 @@ fun FinderScreen(
             label = { Text(text = "Enter your destination", color = Color.Black) }
         )
 
-        if (viewModel.destinationSuggestions.isNotEmpty()) {
+        if (viewModel.showDestinationSuggestions && viewModel.destinationSuggestions.isNotEmpty()) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -189,7 +192,8 @@ fun FinderScreen(
                             .fillMaxWidth()
                             .clickable {
                                 if (suggestion != viewModel.source) {
-                                    viewModel.updateDestination(suggestion, allLocations)
+//                                    viewModel.updateDestination(suggestion, allLocations)
+                                    viewModel.selectDestination(suggestion)
                                 }
                             }
                             .padding(8.dp)
@@ -202,6 +206,9 @@ fun FinderScreen(
 
         Row {
             Button(onClick = {
+                // Clear existing route if it exists
+                routePolyline?.remove()
+                routePolyline = null
                 try {
                     result.value = searchBuses(buses ?: emptyList(), viewModel.source, viewModel.destination)
                     Log.d("FinderScreen", "Buses found: ${result.value}")
@@ -214,11 +221,21 @@ fun FinderScreen(
                                 getLatLngFromPlaceName(context, viewModel.destination) { destinationLatLng ->
                                     if (destinationLatLng != null) {
                                         googleMap?.let {
-                                            drawRoute(context, it, userLatLng,sourceLatLng
+                                            drawRoute(
+                                                context,
+                                                it,
+                                               userLatLng,
+                                               sourceLatLng
 
-                                            )
-                                            Log.d("FinderScreen", "Route drawn from $sourceLatLng to $destinationLatLng")
+                                            ) { polyline ->
+                                                routePolyline = polyline
+                                                Log.d(
+                                                    "FinderScreen",
+                                                    "Route drawn from $sourceLatLng to $destinationLatLng"
+                                                )
+                                            }
                                         }
+
                                     } else {
                                         Log.e("FinderScreen", "Destination location is null")
                                         Toast.makeText(context, "Failed to get destination location", Toast.LENGTH_SHORT).show()
@@ -241,6 +258,11 @@ fun FinderScreen(
                 viewModel.reset()
                 result.value = null
                 Log.d("FinderScreen", "Inputs reset")
+                // Clear existing route if it exists
+                routePolyline?.remove()
+                routePolyline = null
+                // reset to true for again seeing the suggesstions
+               viewModel.updateSuggestionsToTrue()
             }) {
                 Text(text = "Reset")
             }
@@ -325,8 +347,8 @@ private fun getLatLngFromPlaceName(context: Context, placeName: String, callback
     }
 }
 
-private fun drawRoute(context: Context, map: GoogleMap, origin: LatLng, destination: LatLng) {
-    val apiKey = "-----------------" // Replace with your actual Google Maps API key
+private fun drawRoute(context: Context, map: GoogleMap, origin: LatLng, destination: LatLng, callback: (Polyline) -> Unit) {
+    val apiKey = "------------" // Replace with your actual Google Maps API key
     val url = getDirectionsUrl(origin, destination)
 
     val client = OkHttpClient()
@@ -351,12 +373,13 @@ private fun drawRoute(context: Context, map: GoogleMap, origin: LatLng, destinat
                     if (route != null) {
                         val points = PolyUtil.decode(route.overviewPolyline.points)
                         Handler(Looper.getMainLooper()).post {
-                            map.addPolyline(
+                            val polyline = map.addPolyline(
                                 PolylineOptions()
                                     .addAll(points)
                                     .color(Color.Blue.toArgb()) // Draw route in blue color
                                     .width(10f)
                             )
+                            callback(polyline)
                             map.addMarker(MarkerOptions().position(origin).title("Origin"))
                             map.addMarker(MarkerOptions().position(destination).title("Destination"))
                             Toast.makeText(context, "Route drawn successfully", Toast.LENGTH_SHORT).show()
@@ -380,12 +403,11 @@ private fun drawRoute(context: Context, map: GoogleMap, origin: LatLng, destinat
 
 
 
-
 private fun getDirectionsUrl(origin: LatLng, destination: LatLng): String {
     val originStr = "origin=${origin.latitude},${origin.longitude}"
     val destinationStr = "destination=${destination.latitude},${destination.longitude}"
     val mode = "mode=driving"
-    val parameters = "$originStr&$destinationStr&$mode&key=------------------------"
+    val parameters = "$originStr&$destinationStr&$mode&key=---------------"
     return "https://maps.googleapis.com/maps/api/directions/json?$parameters"
 }
 private fun decodePolyline(encoded: String): List<LatLng> {

@@ -14,6 +14,11 @@ class InputsViewModel : ViewModel() {
         private set
     var destinationSuggestions by mutableStateOf(listOf<String>())
         private set
+    var showSourceSuggestions by mutableStateOf(true)
+        private set
+
+    var showDestinationSuggestions by mutableStateOf(true)
+        private set
 
     fun updateSource(input: String, allLocations: List<String>) {
         source = input
@@ -37,5 +42,18 @@ class InputsViewModel : ViewModel() {
         destination = ""
         sourceSuggestions = listOf()
         destinationSuggestions = listOf()
+    }
+    fun selectSource(suggestion: String) {
+        source = suggestion
+        showSourceSuggestions = false
+    }
+
+    fun selectDestination(suggestion: String) {
+        destination = suggestion
+        showDestinationSuggestions = false
+    }
+    fun updateSuggestionsToTrue() {
+        showSourceSuggestions = true
+        showDestinationSuggestions = true
     }
 }
