@@ -5,17 +5,17 @@
     "busNumber": 23,
     "source": "Shikargarh",
     "destination": "Boranada jodhpur",
-    "via": ["Ratanada Circle Jodhpur", "Bhaskar Circle", "JDA Circle Jodhpur","railway hospital ",
-      "jalori Gate Circle","Siwanchi gate","Pal Balaji","Pal Gaon","Bharatpur Rajasthan"]
+    "via": ["Shikargarh" , "Boranada jodhpur","Ratanada Circle Jodhpur", "Bhaskar Circle", "JDA Circle Jodhpur","railway hospital ",
+      "jalori Gate Circle","Siwanchi gate","Pal Balaji","Pal Gaon"]
   },
 
   {
     "busId": 2,
     "busNumber": 10,
-    "source": "paota",
-    "destination": "jhalamand",
-    "via": ["jnvu campus","pili tanki","arora sweets","lahriya sweets","ganda nala","Riktiya bheruji circle",
-      "Police Line Jodhpur","Senapati Bhawan ","mbm college","Ratanada Circle Jodhpur","bhati chouraya","Paota Circle"," high court colony",
+    "source": "Paota",
+    "destination": "Jhalamand",
+    "via": ["Paota", "Jhalamand","jnvu campus","pili tanki","arora sweets","lahriya sweets","ganda nala","Riktiya bheruji circle",
+      "Police Line Jodhpur","Senapati Bhawan ","M.B.M.University","Ratanada Circle Jodhpur","bhati chouraya","Paota Circle"," high court colony",
       "krishi mandi"]
   },
 
@@ -24,41 +24,40 @@
     "busNumber": 10,
     "source": "Ghanta Ghar Jodhpur",
     "destination": "Kudi Bhagtasni Housing Board",
-    "via": ["jnvu campus","pili tanki","arora sweets","lahriya sweets","ganda nala","Riktiya bheruji circle",
-      "krishi mandi","nehru park","jalori Gate Circle","Jodhpur Railway Station","Ghanta Ghar Jodhpur"]
+    "via": ["Ghanta Ghar Jodhpur","jnvu campus","pili tanki","arora sweets","lahriya sweets","ganda nala","Riktiya bheruji circle",
+      "krishi mandi","nehru park","jalori Gate Circle","Jodhpur Railway Station","Ghanta Ghar Jodhpur","Kudi Bhagtasni Housing Board"]
   },
 
   {
     "busId": 4,
     "busNumber": 7,
-    "source": "mandor",
+    "source": "Mandore Jodhpur",
     "destination": "chopasni choranga",
-    "via": ["Siwanchi Gate","panchvi road","geeta bhawan","bombay motors","akhliya circle","choupasni school","nayapura"]
+    "via": ["Mandore Jodhpur","chopasni choranga","Siwanchi Gate","panchvi road","geeta bhawan","Bombay Motor Circle Jodhpur","Akhliya Circle","choupasni school","nayapura"]
   },
 
 
   {
     "busId": 5,
     "busNumber": 6,
-    "source": "banar",
-    "destination": "salawas",
-    "via": ["shiv mandir","new power house","dhauji ka hotel"]
+    "source": "Banar",
+    "destination": "Salawas",
+    "via": ["Banar","Shiv Mandir Paota","new power house","dhauji ka hotel","Salawas"]
   },
 
   {
     "busId": 6,
     "busNumber": 5,
     "source": "mandalnath",
-    "destination": "mandor",
-    "via": ["chandpol gate","Siwanchi Gate","bakra mandi","vyas park"]
+    "destination": "Mandore Jodhpur",
+    "via": ["mandalnath","Chandpole Gate jodhpur","Siwanchi Gate","Bakra mandi Jodhpur","Jay Narayan Vyas Park","Mandore Jodhpur"]
   },
 
   {
     "busId": 7,
     "busNumber": 15,
-    "source": "bidla school",
-    "destination": "chopasni housing board",
-    "via": ["Sojati Gate","Jodhpur Railway Station","mahatama gandhi","jalori Gate Circle","bombay motors","chirgarh",
-      "moh azad devnagar"]
+    "source": "Birla School Jodhpur",
+    "destination": "Chopasni Housing Board Jodhpur",
+    "via": ["Chopasni Housing Board Jodhpur","Birla School Jodhpur","Sojati Gate","Jodhpur Railway Station","Mahatma Gandhi Hospital Jodhpur","jalori Gate Circle","Bombay Motor Circle Jodhpur","Chirghar Masjid "]
   }
 ]
