@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">finder</string>
+    <string name="Content_permission">Allow CityBusFinderApp to access your location while using
+        the app to provide accurate routes and real-time updates on your rides.
+        This ensures you reach your destination safely and efficiently.
+</string>
+</resources>
