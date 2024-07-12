@@ -27,7 +27,7 @@ class LocationUtils(private val context: Context) {
                 PackageManager.PERMISSION_GRANTED
     }
 
-    fun checkLocationSettings(activity: Activity, onLocationSettingsChecked: () -> Unit) {
+    fun checkLocationSettings(activity: Context, onLocationSettingsChecked: () -> Unit) {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             interval = 10000
@@ -50,7 +50,7 @@ class LocationUtils(private val context: Context) {
                 if (exception is ResolvableApiException) {
                     // Location settings are not satisfied, but this can be fixed by showing the user a dialog.
                     try {
-                        exception.startResolutionForResult(activity, REQUEST_CHECK_SETTINGS)
+                        exception.startResolutionForResult(activity as Activity, REQUEST_CHECK_SETTINGS)
                     } catch (sendEx: IntentSender.SendIntentException) {
                         Log.e("LocationUtils", "Error starting resolution for result", sendEx)
                         // Ignore the error.

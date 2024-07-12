@@ -41,7 +41,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
@@ -50,14 +49,11 @@ import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.annotations.SerializedName
 import com.google.maps.android.PolyUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import okhttp3.*
 import java.io.IOException
 import java.util.Locale
 
-@OptIn(ExperimentalPermissionsApi::class)
+    @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun FinderScreen(
     navController: NavController,
@@ -69,6 +65,20 @@ fun FinderScreen(
     val allLocations = buses?.flatMap { it.via }?.distinct() ?: emptyList()
     val result = remember { mutableStateOf<List<BusInformation>?>(null) }
     var routePolyline by remember { mutableStateOf<Polyline?>(null) }
+
+//        val context = LocalContext.current
+//        locationUtils = LocationUtils(context)
+
+//    if (locationUtils.hasPermissionGranted(context)) {
+//        checkLocationSettings()
+//    }
+LaunchedEffect(Unit) {
+    locationUtils.checkLocationSettings(context){
+
+    }
+}
+
+
 
     val locationPermissions = rememberMultiplePermissionsState(
         permissions = listOf(
@@ -95,6 +105,7 @@ fun FinderScreen(
         {
             if (locationUtils.hasPermissionGranted(context)) {
                 MapViewContainer(mapView, googleMap) { map ->
+//                    loadingWhenGoToFinderScreen.loading(false)
                     googleMap = map
                     map.uiSettings.isZoomControlsEnabled = true
                     map.uiSettings.isMyLocationButtonEnabled = true
@@ -446,9 +457,6 @@ private fun decodePolyline(encoded: String): List<LatLng> {
     return poly
 }
 
-//import com.google.gson.annotations.SerializedName
-
-//import com.google.gson.annotations.SerializedName
 
 data class DirectionsResponse(
     @SerializedName("routes") val routes: List<Route>
@@ -515,3 +523,4 @@ fun searchBuses(buses: List<BusInformation>, source: String, destination: String
         sourceIndex != -1 && destinationIndex != -1
     }
 }
+

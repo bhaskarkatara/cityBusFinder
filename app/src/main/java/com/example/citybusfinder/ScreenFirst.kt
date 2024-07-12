@@ -56,7 +56,9 @@ fun WelcomeScreen(navController: NavController,locationUtils: LocationUtils,cont
         Button(onClick = {
             // agar user ne pehele se hi permission de rhki h to direct third screen pe jaap
             if(locationUtils.hasPermissionGranted(context)){
-            navController.navigate(Screen.Finder.route)}
+
+            navController.navigate(Screen.Finder.route)
+            }
             else{
                 // nhi to permission do phele
                 navController.navigate(Screen.PermissionScreen.route)
