@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -40,15 +41,18 @@ class LocationUtils(private val context: Context) {
 
         settingsClient.checkLocationSettings(locationSettingsRequest)
             .addOnSuccessListener {
+                Log.d("LocationUtils", "Location settings are satisfied.")
                 // Location settings are satisfied, proceed with location requests
                 onLocationSettingsChecked()
             }
             .addOnFailureListener { exception ->
+                Log.e("LocationUtils", "Location settings are not satisfied.", exception)
                 if (exception is ResolvableApiException) {
                     // Location settings are not satisfied, but this can be fixed by showing the user a dialog.
                     try {
                         exception.startResolutionForResult(activity, REQUEST_CHECK_SETTINGS)
                     } catch (sendEx: IntentSender.SendIntentException) {
+                        Log.e("LocationUtils", "Error starting resolution for result", sendEx)
                         // Ignore the error.
                     }
                 }
