@@ -1,4 +1,4 @@
-PROBLEM STATEMENT :
+#PROBLEM STATEMENT :
 
 Navigating local city transportation can be a challenging task for residents and visitors alike, especially in bustling urban areas.
 Often, individuals are unsure which city bus to take to reach their destination, leading to confusion and the potential to choose more expensive alternatives such as auto-rickshaws. 
@@ -11,8 +11,12 @@ This ensures that users are informed about the best possible bus options, reduci
 Additionally, the application incorporates a Room database to store the history of searched bus routes, enabling users to quickly access their previous searches.
 This feature enhances the user experience by providing a personalized and efficient way to navigate city transportation.
 
-TECH STACK:
-Android studio, jetpack ,MVVM, RoomDatabase ,json,kotlin
+#Future Plans:
+
+Will add data of individual city where the local transportation is available (eg., jaipur, Bharatpur etc..)
+
+#TECH STACK:
+Android studio, jetpack ,MVVM, RoomDatabase ,json,kotlin,Google Map Api, Retrofit
 
 
 
