@@ -222,9 +222,13 @@ LaunchedEffect(Unit) {
 
         Row {
             Button(onClick = {
+
                 // Clear existing route if it exists
                 routePolyline?.remove()
                 routePolyline = null
+                if(viewModel.source.isEmpty() && viewModel.destination.isEmpty()){
+                    Toast.makeText(context,"Please enter source and destination",Toast.LENGTH_SHORT).show()
+                }
                 try {
                     result.value = searchBuses(buses ?: emptyList(), viewModel.source, viewModel.destination)
                     Log.d("FinderScreen", "Buses found: ${result.value}")
@@ -301,24 +305,34 @@ LaunchedEffect(Unit) {
 
         // Display the search results
         if (result.value?.isNotEmpty() == true) {
+            val source = viewModel.source
+            val destination = viewModel.destination
+            val busNumber = result.value?.get(0)?.busNumber ?: ""
 
+            if (source.isNotEmpty() && destination.isNotEmpty() && busNumber.toString().isNotEmpty()) {
+                viewModel.insertHistory(
+                    History(
+                        source = source,
+                        destination = destination,
+                        busNumber = busNumber.toString(),
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
+            }
             result.value?.forEach { bus ->
                 Text(
                     text = "${bus.busNumber}",
                     color = Color.Black,
                     fontWeight = FontWeight.Bold
                 )
-                viewModel.insertHistory(
-                    History(
-                        source = viewModel.source,
-                        destination = viewModel.destination,
-                        busNumber = (result.value?.get(0)?.busNumber ?: "").toString(),
-                        timestamp = System.currentTimeMillis()
-                    )
-                )
+
             }
             Log.d("FinderScreen", "Buses displayed")
-        } else if (result.value?.isNotEmpty() == false) {
+  }//else if( viewModel.source.isNotEmpty() && viewModel.destination.isNotEmpty()){
+//            Toast.makeText(context,"Pleas select Source and Destination",Toast.LENGTH_SHORT).show()
+//           }
+
+        else if (result.value?.isNotEmpty() == false && viewModel.source.isNotEmpty() && viewModel.destination.isNotEmpty()) {
             Text(
                 text = "No bus found",
                 color = Color.Red,
@@ -389,7 +403,7 @@ private fun getLatLngFromPlaceName(context: Context, placeName: String, callback
 }
 
 private fun drawRoute(context: Context, map: GoogleMap, origin: LatLng, destination: LatLng, callback: (Polyline) -> Unit) {
-    val apiKey = "-----------" // Replace with your actual Google Maps API key
+
     val url = getDirectionsUrl(origin, destination)
 
     val client = OkHttpClient()

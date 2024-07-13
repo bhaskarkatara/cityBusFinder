@@ -21,7 +21,7 @@ import com.example.citybusfinder.sampledata.History
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HistoryScreen(viewModel: InputsViewModel = viewModel(),navController: NavController) {
+fun HistoryScreen(viewModel: InputsViewModel = viewModel(), navController: NavController) {
     val historyList by viewModel.getAllHistory.collectAsState(initial = emptyList())
 
     Scaffold(
@@ -34,7 +34,6 @@ fun HistoryScreen(viewModel: InputsViewModel = viewModel(),navController: NavCon
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "back"
                         )
-
                     }
                     IconButton(onClick = { viewModel.clearAllHistory() }) {
                         Icon(
@@ -52,8 +51,19 @@ fun HistoryScreen(viewModel: InputsViewModel = viewModel(),navController: NavCon
                     .padding(paddingValues)
                     .padding(16.dp)
             ) {
-                items(historyList) { history ->
-                    HistoryItem(history)
+                if (historyList.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "No history found")
+                        }
+                    }
+                } else {
+                    items(historyList) { history ->
+                        HistoryItem(history)
+                    }
                 }
             }
         }
