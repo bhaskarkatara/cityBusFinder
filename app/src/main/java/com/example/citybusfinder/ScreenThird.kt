@@ -2,6 +2,7 @@
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.location.Geocoder
 import android.os.Bundle
@@ -36,6 +37,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.citybusfinder.sampledata.BusInformation
+import com.example.citybusfinder.sampledata.History
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -63,6 +65,7 @@ fun FinderScreen(
     locationUtils: LocationUtils,
     context: Context
 ) {
+        Log.d(TAG, "FinderScreen: welcome to screen third")
     val buses: List<BusInformation>? = JsonUtil.loadJsonFromAsset(context)
     val allLocations = buses?.flatMap { it.via }?.distinct() ?: emptyList()
     val result = remember { mutableStateOf<List<BusInformation>?>(null) }
@@ -298,6 +301,15 @@ LaunchedEffect(Unit) {
 
         // Display the search results
         if (result.value?.isNotEmpty() == true) {
+            viewModel.insertHistory(
+                History(
+//                    id = ,
+                    source = viewModel.source,
+                    destination = viewModel.destination,
+                    busNumber = (result.value?.get(0)?.busNumber ?: "").toString(),
+                    timestamp = System.currentTimeMillis()
+                )
+            )
             result.value?.forEach { bus ->
                 Text(
                     text = "${bus.busNumber}",
@@ -317,6 +329,7 @@ LaunchedEffect(Unit) {
 
         ClickForHistory(onClick = {
            Toast.makeText(context,"fixit",Toast.LENGTH_SHORT).show()
+            navController.navigate("history")
         })
     }
 }
@@ -376,7 +389,7 @@ private fun getLatLngFromPlaceName(context: Context, placeName: String, callback
 }
 
 private fun drawRoute(context: Context, map: GoogleMap, origin: LatLng, destination: LatLng, callback: (Polyline) -> Unit) {
-    val apiKey = "----------" // Replace with your actual Google Maps API key
+    val apiKey = "-----------" // Replace with your actual Google Maps API key
     val url = getDirectionsUrl(origin, destination)
 
     val client = OkHttpClient()
@@ -435,7 +448,7 @@ private fun getDirectionsUrl(origin: LatLng, destination: LatLng): String {
     val originStr = "origin=${origin.latitude},${origin.longitude}"
     val destinationStr = "destination=${destination.latitude},${destination.longitude}"
     val mode = "mode=driving"
-    val parameters = "$originStr&$destinationStr&$mode&key=----------"
+    val parameters = "$originStr&$destinationStr&$mode&key=-----------"
     return "https://maps.googleapis.com/maps/api/directions/json?$parameters"
 }
 private fun decodePolyline(encoded: String): List<LatLng> {

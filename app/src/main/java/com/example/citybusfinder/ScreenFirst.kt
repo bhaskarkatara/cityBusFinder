@@ -1,6 +1,8 @@
 package com.example.citybusfinder
 
+import android.content.ContentValues.TAG
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,7 +60,7 @@ fun WelcomeScreen(navController: NavController,locationUtils: LocationUtils,cont
             if(locationUtils.hasPermissionGranted(context)){
 
             navController.navigate(Screen.Finder.route)
-
+//                Log.d(TAG, "WelcomeScreen: failed to getting finder screen")
             }
             else{
                 // nhi to permission do phele

@@ -89,9 +89,9 @@ fun MyApp() {
                 FinderScreen(navController, viewModel = InputsViewModel(), locationUtils, context)
                 // show dialog if needed
             }
-//            composable("main"){
-//                MainScreen(navController,locationUtils)
-//            }
+          composable(Screen.HistoryScreen.route){
+              HistoryScreen(viewModel = InputsViewModel())
+          }
         }
         BackHandler {
             showDialog.value = true

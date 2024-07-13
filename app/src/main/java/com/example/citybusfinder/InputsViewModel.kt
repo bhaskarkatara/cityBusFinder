@@ -4,8 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewModelScope
+import com.example.citybusfinder.sampledata.History
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
-class InputsViewModel : ViewModel() {
+class InputsViewModel(
+    private val historyRepository: HistoryRepository = Graph.historyRepository
+) : ViewModel() {
     var source by mutableStateOf("")
         private set
     var destination by mutableStateOf("")
@@ -19,6 +25,19 @@ class InputsViewModel : ViewModel() {
 
     var showDestinationSuggestions by mutableStateOf(true)
         private set
+
+    lateinit var getAllHistory : Flow<List<History>>
+    init {
+        viewModelScope.launch {
+            getAllHistory = historyRepository.getAllHistory()
+        }
+    }
+    fun insertHistory(history: History) {
+        viewModelScope.launch {
+            historyRepository.insertHistory(history)
+        }
+    }
+
 
     fun updateSource(input: String, allLocations: List<String>) {
         source = input
