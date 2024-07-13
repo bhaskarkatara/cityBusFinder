@@ -5,12 +5,12 @@ import androidx.room.Room
 
 object Graph {
     lateinit var database : HistoryDatabase
-
+        private set
     val historyRepository by lazy {
-        HistoryRepository(historyDAO = database.historyDao())
+        HistoryRepository(database.historyDao())
     }
 
     fun provide(context: Context) {
-        database = Room.databaseBuilder(context, HistoryDatabase::class.java, "history.db").build()
+        database = Room.databaseBuilder(context, HistoryDatabase::class.java, "history.db") .fallbackToDestructiveMigration().build()
     }
 }

@@ -8,11 +8,14 @@ import com.example.citybusfinder.sampledata.History
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-abstract class HistoryDAO {
+interface  HistoryDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-     abstract  suspend fun insertHistory(history : History)
+       suspend fun insertHistory(history : History)
 
     @Query("SELECT * FROM history_table ORDER BY timestamp DESC")
-     abstract  fun getAllHistory() : Flow<List<History>>
+       fun getAllHistory() : Flow<List<History>>
+
+    @Query("DELETE FROM history_table")
+    suspend fun clearAllHistory()
 }

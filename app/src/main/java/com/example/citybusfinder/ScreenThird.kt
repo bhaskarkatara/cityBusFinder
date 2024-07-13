@@ -301,20 +301,20 @@ LaunchedEffect(Unit) {
 
         // Display the search results
         if (result.value?.isNotEmpty() == true) {
-            viewModel.insertHistory(
-                History(
-//                    id = ,
-                    source = viewModel.source,
-                    destination = viewModel.destination,
-                    busNumber = (result.value?.get(0)?.busNumber ?: "").toString(),
-                    timestamp = System.currentTimeMillis()
-                )
-            )
+
             result.value?.forEach { bus ->
                 Text(
                     text = "${bus.busNumber}",
                     color = Color.Black,
                     fontWeight = FontWeight.Bold
+                )
+                viewModel.insertHistory(
+                    History(
+                        source = viewModel.source,
+                        destination = viewModel.destination,
+                        busNumber = (result.value?.get(0)?.busNumber ?: "").toString(),
+                        timestamp = System.currentTimeMillis()
+                    )
                 )
             }
             Log.d("FinderScreen", "Buses displayed")
@@ -327,10 +327,10 @@ LaunchedEffect(Unit) {
             Log.d("FinderScreen", "No buses found")
         }
 
-        ClickForHistory(onClick = {
-           Toast.makeText(context,"fixit",Toast.LENGTH_SHORT).show()
+        ClickForHistory {
+            Toast.makeText(context, "fixit", Toast.LENGTH_SHORT).show()
             navController.navigate("history")
-        })
+        }
     }
 }
     @Composable

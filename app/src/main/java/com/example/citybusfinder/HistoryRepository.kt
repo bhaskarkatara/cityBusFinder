@@ -13,5 +13,8 @@ class HistoryRepository(
        fun getAllHistory(): Flow<List<History>> =
          historyDAO.getAllHistory()
 
+    suspend fun clearAllHistory() {
+        historyDAO.clearAllHistory()
+    }
 
 }

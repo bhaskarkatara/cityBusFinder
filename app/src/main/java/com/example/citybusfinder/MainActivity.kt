@@ -90,7 +90,7 @@ fun MyApp() {
                 // show dialog if needed
             }
           composable(Screen.HistoryScreen.route){
-              HistoryScreen(viewModel = InputsViewModel())
+              HistoryScreen(viewModel = InputsViewModel(),navController)
           }
         }
         BackHandler {

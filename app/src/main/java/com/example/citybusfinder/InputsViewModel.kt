@@ -34,7 +34,17 @@ class InputsViewModel(
     }
     fun insertHistory(history: History) {
         viewModelScope.launch {
-            historyRepository.insertHistory(history)
+            try {
+                historyRepository.insertHistory(history)
+            } catch (e: Exception) {
+                // Handle the error appropriately, e.g., log it or show a message to the user
+                e.printStackTrace()
+            }
+        }
+    }
+    fun clearAllHistory() {
+        viewModelScope.launch {
+            historyRepository.clearAllHistory()
         }
     }
 
