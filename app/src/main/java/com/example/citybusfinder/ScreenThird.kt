@@ -15,8 +15,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -312,9 +314,24 @@ LaunchedEffect(Unit) {
             )
             Log.d("FinderScreen", "No buses found")
         }
+
+        ClickForHistory(onClick = {
+           Toast.makeText(context,"fixit",Toast.LENGTH_SHORT).show()
+        })
     }
 }
-
+    @Composable
+fun ClickForHistory(onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        content = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null
+            )
+        }
+    )
+}
 @SuppressLint("MissingPermission")
 private fun startLocationUpdates(fusedLocationClient: FusedLocationProviderClient, map: GoogleMap) {
     val locationRequest = com.google.android.gms.location.LocationRequest.create().apply {
@@ -359,7 +376,7 @@ private fun getLatLngFromPlaceName(context: Context, placeName: String, callback
 }
 
 private fun drawRoute(context: Context, map: GoogleMap, origin: LatLng, destination: LatLng, callback: (Polyline) -> Unit) {
-    val apiKey = "-------------" // Replace with your actual Google Maps API key
+    val apiKey = "----------" // Replace with your actual Google Maps API key
     val url = getDirectionsUrl(origin, destination)
 
     val client = OkHttpClient()
@@ -418,7 +435,7 @@ private fun getDirectionsUrl(origin: LatLng, destination: LatLng): String {
     val originStr = "origin=${origin.latitude},${origin.longitude}"
     val destinationStr = "destination=${destination.latitude},${destination.longitude}"
     val mode = "mode=driving"
-    val parameters = "$originStr&$destinationStr&$mode&key=-------------"
+    val parameters = "$originStr&$destinationStr&$mode&key=----------"
     return "https://maps.googleapis.com/maps/api/directions/json?$parameters"
 }
 private fun decodePolyline(encoded: String): List<LatLng> {
@@ -433,7 +450,7 @@ private fun decodePolyline(encoded: String): List<LatLng> {
         var shift = 0
         var result = 0
         do {
-            b = encoded[index++].toInt() - 63
+            b = encoded[index++].code - 63
             result = result or (b and 0x1f shl shift)
             shift += 5
         } while (b >= 0x20)
@@ -443,7 +460,7 @@ private fun decodePolyline(encoded: String): List<LatLng> {
         shift = 0
         result = 0
         do {
-            b = encoded[index++].toInt() - 63
+            b = encoded[index++].code - 63
             result = result or (b and 0x1f shl shift)
             shift += 5
         } while (b >= 0x20)

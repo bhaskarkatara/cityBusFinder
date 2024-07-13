@@ -58,6 +58,7 @@ fun WelcomeScreen(navController: NavController,locationUtils: LocationUtils,cont
             if(locationUtils.hasPermissionGranted(context)){
 
             navController.navigate(Screen.Finder.route)
+
             }
             else{
                 // nhi to permission do phele

@@ -51,6 +51,22 @@ android {
 }
 
 dependencies {
+
+    val nav_version = "2.7.5"
+    val compose_version = "1.6.0-alpha06"
+    val room = "2.6.0"
+
+    // Room
+    implementation(libs.androidx.room.runtime.v260)
+    implementation(libs.androidx.room.ktx.v260)
+    kapt(libs.androidx.room.compiler.v260)
+
+    implementation(libs.navigation.compose.v275)
+    implementation(libs.androidx.ui.v160alpha06)
+    implementation(libs.androidx.material.v160alpha06)
+    implementation(libs.androidx.ui.tooling.preview.v160alpha06)
+
+
 //    implementation (libs.accompanist.map)
 //    implementation(libs.accompanist.map.v0300)
 //    implementation(libs.accompanist.permissions.v0340)
@@ -81,6 +97,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material)
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.androidx.appcompat)
 //    implementation(libs.androidx.material3.android)

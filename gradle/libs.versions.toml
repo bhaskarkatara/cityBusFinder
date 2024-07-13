@@ -1,11 +1,12 @@
 [versions]
 accompanistMap = "0.23.0"
 accompanistMapVersion = "0.30.0"
-accompanistPermissions = "0.24.13-rc"
+accompanistPermissions = "0.34.0"
 accompanistPermissionsVersion = "0.34.0"
 activityComposeVersion = "1.9.0"
 agp = "8.4.2"
 androidMapsUtils = "2.2.3"
+androidxNavigationCompose = "2.7.5"
 converterGson = "2.11.0"
 coreKtxVersion = "1.13.1"
 coreSplashscreen = "1.0.1"
@@ -22,8 +23,10 @@ activityCompose = "1.9.0"
 composeBom = "2024.06.00"
 lifecycleViewmodelCompose = "2.8.3"
 mapsCompose = "2.2.1"
+material = "1.6.8"
 material3 = "1.6.0-alpha08"
 material3Android = "1.2.1"
+materialVersion = "1.6.0-alpha06"
 navigationCompose = "2.7.7"
 navigationComposeVersion = "2.7.7"
 okhttp = "4.11.0"
@@ -34,10 +37,15 @@ playServicesMaps = "19.0.0"
 retrofit = "2.9.0"
 room = "2.6.1"
 #room = "2.6.0"
+roomCompiler = "2.6.0"
+roomKtx = "2.6.0"
+roomRuntime = "2.6.0"
 ui = "1.6.8"
 uiToolingPreview = "1.6.8"
 roomCommon = "2.6.1"
 appcompat = "1.7.0"
+uiToolingPreviewVersion = "1.6.0-alpha06"
+uiVersion = "1.6.0-alpha06"
 
 [libraries]
 accompanist-lifecycle-aware = { module = "com.google.accompanist:accompanist-lifecycle-aware", version.ref = "accompanistPermissions" }
@@ -52,11 +60,22 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-core-ktx-v1131 = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
+androidx-material-v160alpha06 = { module = "androidx.compose.material:material", version.ref = "materialVersion" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-navigation-compose-v275 = { module = "androidx.navigation:navigation-compose", version.ref = "navigationComposeVersion" }
+androidx-room = { module = "androidx.room:room", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler" }
+androidx-room-compiler-v260 = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
+androidx-room-ktx = { module = "androidx.room:room-ktx" }
+androidx-room-ktx-v260 = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-room-room-ktx2 = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-room-runtime2 = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-runtime = { module = "androidx.room:room-runtime" }
+androidx-room-runtime-v260 = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+androidx-ui-tooling-preview-v160alpha06 = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "uiToolingPreviewVersion" }
+androidx-ui-v160alpha06 = { module = "androidx.compose.ui:ui", version.ref = "uiVersion" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 gson-v286 = { module = "com.google.code.gson:gson", version = "2.11.0" }
@@ -76,6 +95,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+navigation-compose-v275 = { module = "androidx.navigation:navigation-compose", version.ref = "androidxNavigationCompose" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version = "4.12.0" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
