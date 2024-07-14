@@ -37,7 +37,7 @@ class InputsViewModel(
             try {
                 historyRepository.insertHistory(history)
             } catch (e: Exception) {
-                // Handle the error appropriately, e.g., log it or show a message to the user
+                // Handle the error appropriately,
                 e.printStackTrace()
             }
         }
@@ -81,6 +81,7 @@ class InputsViewModel(
         destination = suggestion
         showDestinationSuggestions = false
     }
+    // Function to reset suggestions
     fun updateSuggestionsToTrue() {
         showSourceSuggestions = true
         showDestinationSuggestions = true

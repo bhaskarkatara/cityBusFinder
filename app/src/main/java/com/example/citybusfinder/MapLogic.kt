@@ -36,28 +36,6 @@ import okhttp3.Response
 import java.io.IOException
 import java.util.Locale
 
-@SuppressLint("MissingPermission")
-//private fun startLocationUpdates(fusedLocationClient: FusedLocationProviderClient, map: GoogleMap) {
-//    val locationRequest = com.google.android.gms.location.LocationRequest.create().apply {
-//        interval = 10000
-//        fastestInterval = 5000
-//        priority = com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
-//    }
-//
-//    val locationCallback = object : com.google.android.gms.location.LocationCallback() {
-//        override fun onLocationResult(locationResult: com.google.android.gms.location.LocationResult) {
-//            for (location in locationResult.locations) {
-//                val currentLatLng = LatLng(location.latitude, location.longitude)
-//                map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
-//                map.addMarker(MarkerOptions().position(currentLatLng).title("You are here"))
-//            }
-//        }
-//    }
-//
-//    fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
-//}
-
-
 
  fun getLatLngFromPlaceName(context: Context, placeName: String, callback: (LatLng?) -> Unit) {
     val geocoder = Geocoder(context, Locale.getDefault())
@@ -139,45 +117,9 @@ private fun getDirectionsUrl(origin: LatLng, destination: LatLng): String {
     val originStr = "origin=${origin.latitude},${origin.longitude}"
     val destinationStr = "destination=${destination.latitude},${destination.longitude}"
     val mode = "mode=driving"
-    val parameters = "$originStr&$destinationStr&$mode&key=------------------"
+    val parameters = "$originStr&$destinationStr&$mode&key=----"
     return "https://maps.googleapis.com/maps/api/directions/json?$parameters"
 }
-//private fun decodePolyline(encoded: String): List<LatLng> {
-//    val poly = ArrayList<LatLng>()
-//    var index = 0
-//    val len = encoded.length
-//    var lat = 0
-//    var lng = 0
-//
-//    while (index < len) {
-//        var b: Int
-//        var shift = 0
-//        var result = 0
-//        do {
-//            b = encoded[index++].code - 63
-//            result = result or (b and 0x1f shl shift)
-//            shift += 5
-//        } while (b >= 0x20)
-//        val dlat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
-//        lat += dlat
-//
-//        shift = 0
-//        result = 0
-//        do {
-//            b = encoded[index++].code - 63
-//            result = result or (b and 0x1f shl shift)
-//            shift += 5
-//        } while (b >= 0x20)
-//        val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
-//        lng += dlng
-//
-//        val p = LatLng((lat / 1E5).toDouble(), (lng / 1E5).toDouble())
-//        poly.add(p)
-//    }
-//
-//    return poly
-//}
-
 
 data class DirectionsResponse(
     @SerializedName("routes") val routes: List<Route>
@@ -191,6 +133,7 @@ data class OverviewPolyline(
     @SerializedName("points") val points: String
 )
 
+//Wraps a MapView in a Compose layout.
 @Composable
 fun MapViewContainer(
     mapView: MapView,
@@ -206,6 +149,8 @@ fun MapViewContainer(
         }
     )
 }
+
+//Manages the lifecycle of the MapView.
 @SuppressLint("MissingPermission")
 @Composable
 fun rememberMapViewWithLifecycle(): MapView {
@@ -222,6 +167,7 @@ fun rememberMapViewWithLifecycle(): MapView {
     return mapView
 }
 
+//Observes the lifecycle events and manages the MapView accordingly.
 @Composable
 fun rememberLifecycleObserver(mapView: MapView): LifecycleEventObserver = remember(mapView) {
     LifecycleEventObserver { _, event ->

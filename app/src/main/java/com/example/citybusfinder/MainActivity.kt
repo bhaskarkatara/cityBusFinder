@@ -32,41 +32,30 @@ import com.example.citybusfinder.ui.theme.CityBusFinderTheme
 
 
 class MainActivity : ComponentActivity() {
-//    private lateinit var locationUtils: LocationUtils
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(TAG, "onCreate: called onCreate")
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        installSplashScreen()
-        setContent {
-            CityBusFinderTheme {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    MyApp()
-                }
+    Log.d(TAG, "onCreate: called onCreate")
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge()
+    installSplashScreen()
+    setContent {
+        CityBusFinderTheme {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                MyApp()
             }
-        }
-
-//        locationUtils = LocationUtils(this)
-
-//        if (locationUtils.hasPermissionGranted(this)) {
-//            checkLocationSettings()
         }
     }
 
-//    private fun checkLocationSettings() {
-//        locationUtils.checkLocationSettings(this) {
-//            // Proceed with location requests or other operations that need location services
-//        }
-//    }
+}
+}
 
 @Composable
 fun MyApp() {
     val showDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
- // it can be redirect on that screen where dialog occurs,but now it byDefault it comes back on welcome screen
+      // it can be redirect on that screen where dialog occurs,but now it byDefault it comes back on welcome screen
     if (showDialog.value) {
         ExitConfirmationDialog(
             onConfirm = {
@@ -87,7 +76,6 @@ fun MyApp() {
             }
             composable(Screen.Finder.route) {
                 FinderScreen(navController, viewModel = InputsViewModel(), locationUtils, context)
-                // show dialog if needed
             }
           composable(Screen.HistoryScreen.route){
               HistoryScreen(viewModel = InputsViewModel(),navController)

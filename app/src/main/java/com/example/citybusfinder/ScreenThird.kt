@@ -59,26 +59,19 @@ fun FinderScreen(
     locationUtils: LocationUtils,
     context: Context
 ) {
-        Log.d(TAG, "FinderScreen: welcome to screen third")
     val buses: List<BusInformation>? = JsonUtil.loadJsonFromAsset(context)
     val allLocations = buses?.flatMap { it.via }?.distinct() ?: emptyList()
     val result = remember { mutableStateOf<List<BusInformation>?>(null) }
     var routePolyline by remember { mutableStateOf<Polyline?>(null) }
 
-//        val context = LocalContext.current
-//        locationUtils = LocationUtils(context)
-
-//    if (locationUtils.hasPermissionGranted(context)) {
-//        checkLocationSettings()
-//    }
+// this is for checking location settings,it will launce every time when the screen is opened
 LaunchedEffect(Unit) {
     locationUtils.checkLocationSettings(context){
 
     }
 }
 
-
-
+        // a way for requesting location permissions
     val locationPermissions = rememberMultiplePermissionsState(
         permissions = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -99,12 +92,12 @@ LaunchedEffect(Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 20.dp)
-                .fillMaxHeight(0.4f) // Fill half of the screen height
+                .fillMaxHeight(0.4f) // Fill half of the screen height,adjust map height as needed
         )
         {
             if (locationUtils.hasPermissionGranted(context)) {
+                // make a custom map view for showing locations
                 MapViewContainer(mapView, googleMap) { map ->
-//                    loadingWhenGoToFinderScreen.loading(false)
                     googleMap = map
                     map.uiSettings.isZoomControlsEnabled = true
                     map.uiSettings.isMyLocationButtonEnabled = true
@@ -116,9 +109,8 @@ LaunchedEffect(Unit) {
                             val currentLatLng = LatLng(location.latitude, location.longitude)
                             map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
                             map.addMarker(MarkerOptions().position(currentLatLng).title("You are here"))
-                            Log.d("FinderScreen", "Location updated: $currentLatLng")
                         } else {
-                            Log.d("FinderScreen", "Last known location is null")
+                            // log for debugging
                         }
                     }.addOnFailureListener { exception ->
                         Log.e("FinderScreen", "Failed to get last location", exception)
@@ -147,6 +139,7 @@ LaunchedEffect(Unit) {
             label = { Text(text = "Enter your source", color = Color.Black) }
         )
 
+        //Auto suggestion for the source input field
         if (viewModel.showSourceSuggestions && viewModel.sourceSuggestions.isNotEmpty()) {
             LazyColumn(
                 modifier = Modifier
@@ -165,7 +158,6 @@ LaunchedEffect(Unit) {
                             .fillMaxWidth()
                             .clickable {
                                 if (suggestion != viewModel.destination) {
-//                                    viewModel.updateSource(suggestion, allLocations)
                                     viewModel.selectSource(suggestion)
                                 }
                             }
@@ -184,6 +176,7 @@ LaunchedEffect(Unit) {
             label = { Text(text = "Enter your destination", color = Color.Black) }
         )
 
+        // Auto suggestions for the destination fields
         if (viewModel.showDestinationSuggestions && viewModel.destinationSuggestions.isNotEmpty()) {
             LazyColumn(
                 modifier = Modifier
@@ -202,7 +195,6 @@ LaunchedEffect(Unit) {
                             .fillMaxWidth()
                             .clickable {
                                 if (suggestion != viewModel.source) {
-//                                    viewModel.updateDestination(suggestion, allLocations)
                                     viewModel.selectDestination(suggestion)
                                 }
                             }
@@ -220,28 +212,34 @@ LaunchedEffect(Unit) {
                 // Clear existing route if it exists
                 routePolyline?.remove()
                 routePolyline = null
+
+
                 if(viewModel.source.isEmpty() && viewModel.destination.isEmpty()){
                     Toast.makeText(context,"Please enter source and destination",Toast.LENGTH_SHORT).show()
                 }
                 try {
+                    // Find buses based on source and destination
                     result.value = searchBuses(buses ?: emptyList(), viewModel.source, viewModel.destination)
-                    Log.d("FinderScreen", "Buses found: ${result.value}")
+                   // log here for debugging of result.value--->
 
                     locationUtils.getCurrentLocation { userLocation ->
                         val userLatLng = LatLng(userLocation.latitude, userLocation.longitude)
 
+                        // getting latitude and longitude of source and destination
                         getLatLngFromPlaceName(context, viewModel.source) { sourceLatLng ->
                             if (sourceLatLng != null) {
                                 getLatLngFromPlaceName(context, viewModel.destination) { destinationLatLng ->
                                     if (destinationLatLng != null) {
                                         googleMap?.let {
+                                            // Draw route from source to destination
                                             drawRoute(
                                                 context,
                                                 it,
                                                userLatLng,
                                                sourceLatLng
 
-                                            ) { polyline ->
+                                            )
+                                            { polyline ->
                                                 routePolyline = polyline
                                                 Log.d(
                                                     "FinderScreen",
@@ -251,12 +249,10 @@ LaunchedEffect(Unit) {
                                         }
 
                                     } else {
-                                        Log.e("FinderScreen", "Destination location is null")
                                         Toast.makeText(context, "Failed to get destination location", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             } else {
-                                Log.e("FinderScreen", "Source location is null")
                                 Toast.makeText(context, "Failed to get source location", Toast.LENGTH_SHORT).show()
                             }
                         }
@@ -267,26 +263,31 @@ LaunchedEffect(Unit) {
             }) {
                 Text(text = "Find Bus")
             }
+
             Spacer(modifier = Modifier.width(16.dp))
+
             Button(onClick = {
                 viewModel.reset()
                 result.value = null
-                Log.d("FinderScreen", "Inputs reset")
+
                 // Clear existing route if it exists
                 routePolyline?.remove()
                 routePolyline = null
                 // reset to true for again seeing the suggestions
                viewModel.updateSuggestionsToTrue()
+
             }) {
                 Text(text = "Reset")
             }
             Spacer(modifier = Modifier.width(16.dp))
+
+            // swapping the source and destination
             Button(onClick = {
                 if (viewModel.source.isNotEmpty() && viewModel.destination.isNotEmpty()) {
                     val tempSource = viewModel.source
                     viewModel.updateSource(viewModel.destination, allLocations)
                     viewModel.updateDestination(tempSource, allLocations)
-                    Log.d("FinderScreen", "Source and destination swapped")
+
                 }
             }) {
                 Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
@@ -321,7 +322,7 @@ LaunchedEffect(Unit) {
                 )
 
             }
-            Log.d("FinderScreen", "Buses displayed")
+
   }
 
         else if (result.value?.isNotEmpty() == false && viewModel.source.isNotEmpty() && viewModel.destination.isNotEmpty()) {
@@ -330,7 +331,6 @@ LaunchedEffect(Unit) {
                 color = Color.Red,
                 fontWeight = FontWeight.Bold
             )
-            Log.d("FinderScreen", "No buses found")
         }
 
         ClickForHistory {

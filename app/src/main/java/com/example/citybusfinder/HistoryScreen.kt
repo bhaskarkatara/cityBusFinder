@@ -31,6 +31,7 @@ import com.example.citybusfinder.sampledata.History
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(viewModel: InputsViewModel = viewModel(), navController: NavController) {
+    // Retrieve the list of history items from the ViewModel
     val historyList by viewModel.getAllHistory.collectAsState(initial = emptyList())
 
     Scaffold(
