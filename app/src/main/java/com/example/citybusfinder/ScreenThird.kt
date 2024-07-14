@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -50,6 +52,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
+import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
     @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -337,8 +340,12 @@ LaunchedEffect(Unit) {
             Toast.makeText(context, "fixit", Toast.LENGTH_SHORT).show()
             navController.navigate("history")
         }
+        ClickForFeedback{
+           navController.navigate("feedback-screen")
+        }
     }
 }
+
     @Composable
 fun ClickForHistory(onClick: () -> Unit) {
     IconButton(
@@ -352,8 +359,24 @@ fun ClickForHistory(onClick: () -> Unit) {
     )
 }
 
+    @Composable
+//    @Composable
+    fun ClickForFeedback(onClick: () -> Unit) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            IconButton(
+                onClick = onClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(imageVector = Icons.Default.MailOutline, contentDescription = "Feedback Form")
+            }
+        }
+    }
 
-fun searchBuses(buses: List<BusInformation>, source: String, destination: String): List<BusInformation> {
+
+
+    fun searchBuses(buses: List<BusInformation>, source: String, destination: String): List<BusInformation> {
     return buses.filter { bus ->
         val sourceIndex = bus.via.indexOf(source)
         val destinationIndex = bus.via.indexOf(destination)

@@ -1,5 +1,6 @@
 package com.example.citybusfinder
 
+import FeedbackScreen
 import android.app.Activity
 import android.content.ContentValues.TAG
 import android.os.Bundle
@@ -80,6 +81,9 @@ fun MyApp() {
           composable(Screen.HistoryScreen.route){
               HistoryScreen(viewModel = InputsViewModel(),navController)
           }
+            composable(Screen.FeedbackScreen.route){
+                FeedbackScreen(navController)
+            }
         }
         BackHandler {
             showDialog.value = true

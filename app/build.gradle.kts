@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("kotlin-kapt")
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -52,6 +53,7 @@ android {
 
 dependencies {
 
+    implementation(libs.firebase.database)
     val nav_version = "2.7.5"
     val compose_version = "1.6.0-alpha06"
     val room = "2.6.0"
