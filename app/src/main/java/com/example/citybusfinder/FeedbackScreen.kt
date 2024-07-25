@@ -90,7 +90,8 @@ fun FeedbackScreen(navController: NavController
                 IconButton(
                     onClick = {
                      val intent =Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-                    photoPickerLauncher.launch(intent)
+                      photoPickerLauncher.launch(intent)
+                      Toast.makeText(context,"this will work soon",Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
