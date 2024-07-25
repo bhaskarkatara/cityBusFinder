@@ -7,8 +7,10 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
@@ -54,6 +56,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MyApp() {
+    // for media taking as a feedback
+val photoPickerLauncher  = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
+
+}
     val showDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
       // it can be redirect on that screen where dialog occurs,but now it byDefault it comes back on welcome screen
@@ -82,7 +88,7 @@ fun MyApp() {
               HistoryScreen(viewModel = InputsViewModel(),navController)
           }
             composable(Screen.FeedbackScreen.route){
-                FeedbackScreen(navController)
+                FeedbackScreen(navController,photoPickerLauncher = photoPickerLauncher)
             }
         }
         BackHandler {

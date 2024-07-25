@@ -1,6 +1,10 @@
 import android.content.ContentValues.TAG
+import android.content.Intent
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,7 +37,9 @@ import com.google.firebase.database.database
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedbackScreen(navController: NavController) {
+fun FeedbackScreen(navController: NavController
+,photoPickerLauncher : ActivityResultLauncher<Intent>
+                   ) {
     val feedbackText = remember { mutableStateOf("") }
     val database = Firebase.database
     val userRef = database.reference.child("feedback")
@@ -82,7 +88,10 @@ fun FeedbackScreen(navController: NavController) {
                 }
 
                 IconButton(
-                    onClick = { /* Handle image insert action */ },
+                    onClick = {
+                     val intent =Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    photoPickerLauncher.launch(intent)
+                    },
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
                     Icon(
