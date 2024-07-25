@@ -34,7 +34,7 @@ import com.example.citybusfinder.ui.theme.CityBusFinderTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-    Log.d(TAG, "onCreate: called onCreate")
+//    Log.d(TAG, "onCreate: called onCreate")
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     installSplashScreen()

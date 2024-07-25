@@ -117,7 +117,7 @@ private fun getDirectionsUrl(origin: LatLng, destination: LatLng): String {
     val originStr = "origin=${origin.latitude},${origin.longitude}"
     val destinationStr = "destination=${destination.latitude},${destination.longitude}"
     val mode = "mode=driving"
-    val parameters = "$originStr&$destinationStr&$mode&key=----"
+    val parameters = "$originStr&$destinationStr&$mode&key=AIzaSyDPyv1IvN9rsXjpuiE52GLKJhPzSOKv2CQ"
     return "https://maps.googleapis.com/maps/api/directions/json?$parameters"
 }
 
